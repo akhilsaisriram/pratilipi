@@ -2,18 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const app = express();
-const notificationRoutes=require("./routes/notification_route");
+const orderroutes=require("./routes/order_routs")
 app.use(cors());
 app.use(express.json());
-app.use(morgan('dev')); 
-const connectdb = require('./config/db');
-connectdb();
+app.use(morgan('dev')); // Logs requests to the console
+
+
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'hello' });
+  res.status(200).json({ message: 'hello order' });
 });
 
-app.use('/notifications', notificationRoutes);
-
-const PORT = process.env.PORT || 3001;
+app.use('/order',orderroutes);
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => console.log(`Users service running on port ${PORT}`));

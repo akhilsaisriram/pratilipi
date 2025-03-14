@@ -44,6 +44,26 @@ services:
       - mongodb
     command: npm run server
 
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=order_db
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./order-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+    command: npm run server
   mongodb:
     image: mongo:latest
     container_name: mongodb

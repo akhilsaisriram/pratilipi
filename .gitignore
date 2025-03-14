@@ -5,6 +5,8 @@ yarn-debug.log*
 yarn-error.log*
 users-service/node_modules/
 notification-service/node_modules/
+order-service/node_modules/
+
 # Build directories
 **/dist/
 **/build/
