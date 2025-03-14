@@ -1,3 +1,177 @@
+# version: '3.8'
+
+# services:
+#   users-service:
+#     build: ./users-service
+#     container_name: users-service
+#     # restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=users_db
+#       - JWT_SECRET=${JWT_SECRET}
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - ./users-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+#   notification-service:
+#     build: ./notification-service
+#     container_name: notification-service
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=notifications_db
+#     ports:
+#       - "3001:3001"
+#     volumes:
+#       - ./notification-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+#   order-service:
+#     build: ./order-service
+#     container_name: order-service
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=order_db
+#     ports:
+#       - "3002:3002"
+#     volumes:
+#       - ./order-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+#   product-service:
+#     build: ./product-service
+#     container_name: product-service
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=product_db
+#     ports:
+#       - "3003:3003"
+#     volumes:
+#       - ./product-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+#   recommendation-service:
+#     build: ./recommendation-service
+#     container_name: recommendation-service
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=recommendation_db
+#     ports:
+#       - "3004:3004"
+#     volumes:
+#       - ./recommendation-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+#   apigateway-service:
+#     build: ./apigateway-service
+#     container_name: apigateway-service
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_USERNAME=${MONGO_USERNAME}
+#       - MONGO_PASSWORD=${MONGO_PASSWORD}
+#       - MONGO_HOSTNAME=mongodb
+#       - MONGO_PORT=${MONGO_PORT}
+#       - MONGO_DB=apigateway_db
+#     ports:
+#       - "8080:8080"
+#     volumes:
+#       - ./apigateway-service:/usr/src/app
+#       - /usr/src/app/node_modules
+#     networks:
+#       - microservices-network
+#     depends_on:
+#       - mongodb
+#     command: npm run server
+
+
+#   mongodb:
+#     image: mongo:latest
+#     container_name: mongodb
+#     restart: unless-stopped
+#     environment:
+#       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+#       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+#     ports:
+#       - "${MONGO_PORT}:27017"
+#     volumes:
+#       - mongodb-data:/data/db
+#     networks:
+#       - microservices-network
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "10m"
+#         max-file: "3"
+#     command: mongod --quiet
+
+
+#   rabbitmq:
+#     image: rabbitmq:3.8-management-alpine
+#     container_name: rabbitmq
+#     ports:
+#       - "5672:5672"  # AMQP protocol port
+#       - "15672:15672"  # Management UI port
+#     volumes:
+#       - rabbitmq-data:/var/lib/rabbitmq
+#     networks:
+#       - microservices-network
+#     environment:
+#       - RABBITMQ_DEFAULT_USER=guest
+#       - RABBITMQ_DEFAULT_PASS=guest
+
+# networks:
+#   microservices-network:
+#     driver: bridge
+
+# volumes:
+#   mongodb-data:
+#   rabbitmq-data:
+
 version: '3.8'
 
 services:
@@ -12,6 +186,7 @@ services:
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_DB=users_db
       - JWT_SECRET=${JWT_SECRET}
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     ports:
       - "3000:3000"
     volumes:
@@ -21,6 +196,7 @@ services:
       - microservices-network
     depends_on:
       - mongodb
+      - rabbitmq
     command: npm run server
 
   notification-service:
@@ -33,6 +209,7 @@ services:
       - MONGO_HOSTNAME=mongodb
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_DB=notifications_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     ports:
       - "3001:3001"
     volumes:
@@ -42,6 +219,7 @@ services:
       - microservices-network
     depends_on:
       - mongodb
+      - rabbitmq
     command: npm run server
 
   order-service:
@@ -54,6 +232,7 @@ services:
       - MONGO_HOSTNAME=mongodb
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_DB=order_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     ports:
       - "3002:3002"
     volumes:
@@ -63,7 +242,92 @@ services:
       - microservices-network
     depends_on:
       - mongodb
+      - rabbitmq
     command: npm run server
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=product_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./product-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+      - rabbitmq
+    command: npm run server
+
+  recommendation-service:
+    build: ./recommendation-service
+    container_name: recommendation-service
+    restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=recommendation_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./recommendation-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+      - rabbitmq
+    command: npm run server
+
+  apigateway:
+    build: ./apigateway
+    container_name: apigateway
+    restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=apigateway_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./apigateway:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+      - rabbitmq
+    command: npm run server
+
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"  # AMQP protocol port
+      - "15672:15672"  # Management UI port
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - microservices-network
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -90,3 +354,4 @@ networks:
 
 volumes:
   mongodb-data:
+  rabbitmq-data:

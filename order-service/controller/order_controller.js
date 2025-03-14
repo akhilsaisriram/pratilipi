@@ -1,6 +1,6 @@
 const Order = require('../model/order');
 const order_validator=require("./validator")
-
+const rabbitMQService = require('../config/rabbitmq'); // Import the RabbitMQ service
 exports.getordersbyuser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -56,7 +56,17 @@ exports.createorder = async (req, res) => {
     order.totalPrice = order.calculateTotalPrice();
     
     const savedOrder = await order.save();
-    
+    await rabbitMQService.publishMessage(
+        'order_events',
+        'order.created',
+        {
+          orderId: order._id,
+          userId: order.userId,
+          products: order.products,
+          status: order.status,
+          timestamp: new Date()
+        }
+      );
     res.status(201).json(savedOrder);
   } catch (err) {
     res.status(400).json({ message: err.message });
