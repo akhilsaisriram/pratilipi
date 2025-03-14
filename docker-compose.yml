@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  users-service:
+    build: ./users-service
+    container_name: users-service
+    # restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=users_db
+      - JWT_SECRET=${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./users-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+    command: npm run server
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    restart: unless-stopped
+    environment:
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_HOSTNAME=mongodb
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB=notifications_db
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./notification-service:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+    command: npm run server
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "${MONGO_PORT}:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - microservices-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: mongod --quiet
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:
