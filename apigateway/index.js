@@ -1,16 +1,52 @@
 const express = require('express');
-const cors = require('cors');
+const { ApolloServer } = require("@apollo/server");
+const { expressMiddleware } = require('@apollo/server/express4');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { typeDefs, resolvers } = require('./schema/schema_user');
 const morgan = require('morgan');
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(morgan('dev')); // Logs requests to the console
+const cors = require('cors');
+const http = require('http');
+const { ApolloServerPluginDrainHttpServer } = require('@apollo/server/plugin/drainHttpServer');
 
+async function startServer() {
+  const app = express();
+  const httpServer = http.createServer(app);
+  
+  // Create GraphQL schema
+  const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers
+  });
 
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'hello gateway' });
-});
+  // Create Apollo Server
+  const server = new ApolloServer({
+    schema,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  });
 
-const PORT = process.env.PORT || 8080;
+  await server.start();
+  
+  // Middleware
+  app.use(
+    '/graphql',
+    cors(),
+    express.json(),
+    morgan('dev'),
+    expressMiddleware(server, {
+      context: async ({ req }) => ({
+        token: req.headers.authorization || ''
+      })
+    })
+  );
 
-app.listen(PORT, () => console.log(`Users service running on port ${PORT}`));
+  // Health check endpoint
+  app.get('/', (req, res) => {
+    res.status(200).json({ message: 'GraphQL API Gateway is running' });
+  });
+
+  const PORT = process.env.PORT || 8080;
+  await new Promise(resolve => httpServer.listen({ port: PORT }, resolve));
+  console.log(`API Gateway running on port ${PORT}, GraphQL endpoint at http://localhost:${PORT}/graphql`);
+}
+
+startServer().catch(err => console.error('Error starting server:', err));

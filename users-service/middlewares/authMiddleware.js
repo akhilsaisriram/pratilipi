@@ -3,8 +3,15 @@ const {
 JWT_SECRET
   } = process.env;
 const authenticateToken = (req, res, next) => {
+    console.log('====================================');
+    console.log(req.headers);
+    console.log('====================================');
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; 
+    console.log('====================================');
+    console.log(authHeader);
+    console.log('====================================');
+    // const token = authHeader && authHeader.split(' ')[1]; 
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
         return res.status(401).json({ message: 'Access denied, token missing!' });

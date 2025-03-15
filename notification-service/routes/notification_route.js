@@ -8,6 +8,6 @@ router.get('/:userId/unread', notificationController.get_unread_notifications);
 
 router.get('/read/:userId/:notificationId', notificationController.mark_notifications_asread);
 
-router.post('/create', notificationController.create_notification);
+// router.post('/create', notificationController.create_notification);
 
 module.exports = router;

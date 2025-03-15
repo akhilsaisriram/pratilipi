@@ -23,6 +23,14 @@ const OrderSchema = new Schema({
     price: {
       type: Number,
       required: true
+    },
+    category: {
+      type: String,
+      required: true
+   },
+    subcategory: {
+      type: String,
+      required: true
     }
   }],
   totalPrice: {
@@ -43,8 +51,9 @@ const OrderSchema = new Schema({
   },
   estimatedDelivery: {
     type: Date,
-    required:true
-  },
+    default: function () {
+      return new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // Adds 3 days
+    }  },
   isDelivered: {
     type: Boolean,
     default: false
@@ -60,6 +69,10 @@ const OrderSchema = new Schema({
   isPaid: {
     type: Boolean,
     default: false
+  },
+  sendnotification: {
+    type: Boolean,
+    default: true
   },
   paymentTime: {
     type: Date

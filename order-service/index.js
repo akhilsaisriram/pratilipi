@@ -3,8 +3,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const app = express();
 const orderroutes=require("./routes/order_routs");
-const rabbitMQService = require('./config/rabbitmq'); 
+const RabbitMQService = require('./config/rabbitmq'); 
+
+const orderconsumer=require('./consumer/rabbitmq_consumer')
 const connectdb = require('./config/db');
+
+const updateordersandnotify=require("./scheduler/cronjob")
 connectdb();
 
 app.use(cors());
@@ -23,11 +27,14 @@ app.use('/order',orderroutes);
 async function initializeApp() {
   try {
     // Connect to RabbitMQ
-    await rabbitMQService.connect();
+    await RabbitMQService.connect();
     console.log('RabbitMQ service initialized successfully');
+
+    await orderconsumer();
+    updateordersandnotify();
     process.on('SIGINT', async () => {
       console.log('Shutting down...');
-      await rabbitMQService.closeConnection();
+      await RabbitMQService.closeConnection();
       process.exit(0);
     });
     

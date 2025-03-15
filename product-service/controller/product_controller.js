@@ -1,6 +1,82 @@
 
 const Product = require('../model/product');
 const validatedata = require('./validaror');
+const RabbitMQService=require("../config/rabbitmq")
+
+async function sendack(order,mes) {
+  
+    try {
+      const channel = await RabbitMQService.connect();
+
+      const queueName = "inventory_check_queue_from_product_ack";
+
+      // Ensure queue exists before sending a message
+      await channel.assertQueue(queueName, { durable: true });
+
+      const message = {
+          message:mes,
+          orderId: order._id,
+      };
+
+      // Send message to queue directly
+      channel.sendToQueue(
+          queueName,
+          Buffer.from(JSON.stringify(message)),
+          { persistent: true }
+      );
+
+      // console.log("Inventory check request sent:", message);
+  } catch (error) {
+      console.error("Error sending inventory check message:", error);
+  }
+}
+
+
+exports.inventory_check = async (message) => {
+
+    const { orderId, order } = message;
+    console.log(order.products);
+
+    try {
+        const productIds = order.products.map(p => p.productId);
+        const products = await Product.find({ _id: { $in: productIds } });
+
+        let isStockAvailable = true;
+        let insufficientProducts = [];
+
+        for (const item of order.products) {
+            const product = products.find(p => p._id.toString() === item.productId);
+
+            if (!product || product.unitsavailable < item.quantity) {
+                isStockAvailable = false;
+                insufficientProducts.push({ productId: item.productId, name: item.name });
+            }
+        }
+
+        if (isStockAvailable) {
+            for (const item of order.products) {
+                await Product.updateOne(
+                    { _id: item.productId },
+                    { $inc: { unitsavailable: -item.quantity } } 
+                );
+            }
+
+        
+            const mess="ok"
+            await sendack(order,mess);
+
+        } else {
+
+     
+            const mess="not ok"
+            await sendack(order,mess);
+        }
+        
+    } catch (error) {
+        console.error("Error processing inventory check:", error);
+    }
+};
+
 
 exports.addproduct = async (req, res) => {
     const { isValid, errors } = validatedata(req.body);
@@ -17,6 +93,8 @@ exports.addproduct = async (req, res) => {
             price: req.body.price,
             unitsavailable: req.body.unitsavailable,
             category: req.body.category,
+            subcategory: req.body.subcategory,
+
             images: req.body.images || [],
         };
 
@@ -52,8 +130,8 @@ exports.getAllProducts = async (req, res) => {
 };
 
 exports.filteredproduct = async (req, res) => {
-    const { name, category, minPrice, maxPrice, rating } = req.params;
-  if (!name && !category && !minPrice && !maxPrice && !rating) {
+    const { name, category,subcategory, minPrice, maxPrice, rating } = req.params;
+  if (!name && !category && !subcategory && !minPrice && !maxPrice && !rating) {
       return res.status(400).json({ message: 'At least one filter parameter is required' });
     }
 
@@ -61,6 +139,8 @@ exports.filteredproduct = async (req, res) => {
 
     if (name) filterQuery.productname = { $regex: name, $options: 'i' };
     if (category) filterQuery.category = category;
+    if (subcategory) filterQuery.subcategory = subcategory;
+
     
     if (rating) filterQuery.rating = { $gte: Number(rating) };
 

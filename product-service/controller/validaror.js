@@ -21,7 +21,9 @@ exports.validatedata = (data) => {
     if (!data.category || typeof data.category !== 'string') {
         errors.push('Category is required.');
     }
-
+    if (!data.subcategory || typeof data.subcategory !== 'string') {
+        errors.push('subCategory is required.');
+    }
 
     if (data.reviews) {
         if (!Array.isArray(data.reviews)) {

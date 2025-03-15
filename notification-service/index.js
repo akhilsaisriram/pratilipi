@@ -3,12 +3,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const app = express();
 const notificationRoutes=require("./routes/notification_route");
-const startConsumer = require('./controller/rabbitmq_consumer'); 
+const startConsumer = require('./consumer/rabbitmq_consumer'); 
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev')); 
-const rabbitMQService = require('./config/rabbitmq'); // Import the RabbitMQ service
+const rabbitMQService = require('./config/rabbitmq'); 
 
 const connectdb = require('./config/db');
 connectdb();
