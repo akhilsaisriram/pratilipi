@@ -22,7 +22,6 @@ const reviewSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
         required: true
     },
     productname: {
@@ -60,6 +59,10 @@ const productSchema = new mongoose.Schema({
     subcategory: {
         type: String,
         required: true
+    },
+    company: {
+        type: String,
+        required:true
     },
     images: [{
         type: String

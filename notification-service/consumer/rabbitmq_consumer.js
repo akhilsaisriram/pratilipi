@@ -27,15 +27,18 @@ function generateNotification(order) {
 }
 
 async function processnotification(notify) {
-  console.log("Received Order Event:", notify);
+  // console.log("Received Order Event:", notify);
   const {order,type}=notify;
+
+
   const content=generateNotification(order);
-
-  create_notification.create_notification(content,order.userId,type)
-
+  console.log('====================================');
+ console.log("from notification",type);
+ console.log('====================================');
+ const res= create_notification.create_notification(content,order.userId,type)
+ 
 
 }
-
 async function startConsumer() {
   try {
     const queueName = "notification_queue";

@@ -42,6 +42,8 @@ class RabbitMQService {
 
   async consumeMessage(exchange, queue, routingKey, callback) {
     try {
+      console.log("hi from");
+      
       if (!this.channel) await this.connect();
       
       await this.channel.assertExchange(exchange, 'direct', { durable: true });
@@ -67,7 +69,17 @@ class RabbitMQService {
       throw error;
     }
   }
-
+  async sendtoqueue(queue, message) {
+    try {
+      if (!this.channel) await this.connect();
+      await this.channel.assertQueue(queue, { durable: true });
+      this.channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), { persistent: true });
+      console.log(`Message sent to queue: ${queue}`);
+    } catch (error) {
+      console.error('Error sending message to queue:', error);
+      throw error;
+    }
+  }
   async closeConnection() {
     try {
       await this.channel.close();

@@ -15,6 +15,10 @@ const OrderSchema = new Schema({
       type: String,
       required:true
     },
+    company: {
+      type: String,
+      required:true
+    },
     quantity: {
       type: Number,
       required:true,

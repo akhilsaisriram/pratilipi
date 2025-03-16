@@ -19,6 +19,9 @@ exports.validator = (orderData) => {
       if (!product.name || typeof product.name !== "string") {
         errors.push({ field: `products[${index}].name`, message: "Product name is required and must be a string" });
       }
+      if (!product.company || typeof product.company !== "string") {
+        errors.push({ field: `products[${index}].company`, message: "company name is required and must be a string" });
+      }
       if (!product.category || typeof product.category !== "string") {
         errors.push({ field: `products[${index}].category`, message: "category name is required and must be a string" });
       }
@@ -98,6 +101,9 @@ exports.validateorderupdate = (updates) => {
         }
         if (!product.name || typeof product.name !== "string") {
           errors.push({ field: `products[${index}].name`, message: "Product name is required and must be a string" });
+        }
+        if (!product.company || typeof product.company !== "string") {
+          errors.push({ field: `products[${index}].company`, message: "company name is required and must be a string" });
         }
         if (!product.category || typeof product.category !== "string") {
           errors.push({ field: `products[${index}].category`, message: "category name is required and must be a string" });

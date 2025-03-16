@@ -1,25 +1,21 @@
 const RabbitMQService = require("../config/rabbitmq");
-const inventory_check = require("../controller/product_controller");
-async function processInventoryCheck(queueName, content) {
+const productsearch=require('../controller/recommendation_controller')
+async function process(queueName, content) {
 
   try {
-    if (queueName === "inventory_check_queue") {
-        inventory_check.inventory_check(content);
-
-    } else if (queueName === "recommendation_from_order_queue") {
-        await inventory_check.getRecommendedProducts(content);
-    }
+console.log("from the produt to the recommendation ");
+productsearch.productsearch(content)
   } catch (error) {
     console.error("Error processing inventory check:", error);
   }
 }
 
-async function startInventoryConsumer() {
+async function startproductConsumer() {
 
   try {
-    console.log("Starting Message Consumers...");
+    console.log("Starting recomendation Consumers...");
 
-    const queues = ["inventory_check_queue", "recommendation_from_order_queue"];
+    const queues = ["product_search"];
     const channel = await RabbitMQService.connect();
 
     for (const queue of queues) {
@@ -30,7 +26,7 @@ async function startInventoryConsumer() {
         async (msg) => {
           if (msg) {
             const content = JSON.parse(msg.content.toString());
-            processInventoryCheck(queue, content);
+            process(queue, content);
             channel.ack(msg); // Acknowledge message after processing
           }
         },
@@ -44,4 +40,4 @@ async function startInventoryConsumer() {
   }
 }
 
-module.exports = startInventoryConsumer;
+module.exports = startproductConsumer;

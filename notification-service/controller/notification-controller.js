@@ -117,6 +117,7 @@ exports.create_notification = async (content,userId,type) => {
       type,
       content,
     });
+  
     return notification;
   } catch (error) {
     console.log(error);

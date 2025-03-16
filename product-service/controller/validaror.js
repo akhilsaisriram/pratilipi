@@ -2,7 +2,7 @@
 exports.validatedata = (data) => {
     const errors = [];
 
-    if (!data.productName || typeof data.productName !== 'string') {
+    if (!data.productname || typeof data.productname !== 'string') {
         errors.push('Valid product name is required.');
     }
 
@@ -14,7 +14,7 @@ exports.validatedata = (data) => {
         errors.push('Price must be a positive number.');
     }
 
-    if (isNaN(data.noOfUnitsAvailable) || data.noOfUnitsAvailable < 0) {
+    if (isNaN(data.unitsavailable) || data.unitsavailable < 0) {
         errors.push('Number of units available must be a positive number.');
     }
 
@@ -23,6 +23,9 @@ exports.validatedata = (data) => {
     }
     if (!data.subcategory || typeof data.subcategory !== 'string') {
         errors.push('subCategory is required.');
+    }
+    if (!data.company || typeof data.company !== 'string') {
+        errors.push('company is required.');
     }
 
     if (data.reviews) {

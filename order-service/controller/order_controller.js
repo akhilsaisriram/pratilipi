@@ -41,61 +41,7 @@ exports.getorderbyid = async (req, res) => {
   }
 };
 
-// exports.createorder = async (req, res) => {
-//   try {
-//     const errors = order_validator.validator(req.body);
 
-//     if (errors.length > 0) {
-//       return res.status(400).json({ errors });
-//     }
-
-//     const orderData = req.body;
-//     const order = new Order(orderData);
-
-//     order.totalPrice = order.calculateTotalPrice();
-
-//     const savedOrder = await order.save();
-
-//     await rabbitMQService.publishMessage("order_events", "order.created", {
-//       order: order,
-//       orderId: order._id,
-//       userId: order.userId,
-//       products: order.products,
-//       status: order.status,
-//       timestamp: new Date(),
-//     });
-//     res.status(201).json(savedOrder);
-//   } catch (err) {
-//     res.status(400).json({ message: err.message });
-//   }
-// };
-async function inventorycheck(order) {
-  
-    try {
-      const channel = await RabbitMQService.connect();
-
-      const queueName = "inventory_check_queue";
-
-      // Ensure queue exists before sending a message
-      await channel.assertQueue(queueName, { durable: true });
-
-      const message = {
-          orderId: order._id,
-          order: order
-      };
-
-      // Send message to queue directly
-      channel.sendToQueue(
-          queueName,
-          Buffer.from(JSON.stringify(message)),
-          { persistent: true }
-      );
-
-      // console.log("Inventory check request sent:", message);
-  } catch (error) {
-      console.error("Error sending inventory check message:", error);
-  }
-}
 
 exports.createorder = async (req, res) => {
   try {
@@ -113,7 +59,17 @@ exports.createorder = async (req, res) => {
     }
     await order.save();
 
-    await inventorycheck(order);
+    // await inventorycheck(order);
+    const messagea = {
+      orderId: order._id,
+      order: order
+  };
+    // await RabbitMQService.sendtoqueue("inventory_check_queue", messagea);
+    await RabbitMQService.publishMessage(
+      "order_exchange", // exchange name
+      "inventory.check", // routing key
+      messagea // message
+    );
 
     res.status(201).json({
       message: "Order received. We will notify you about the status via email.",
@@ -153,7 +109,17 @@ exports.updateorder = async (req, res) => {
 
     await order.save();
 
-    await inventorycheck(order);
+    // await inventorycheck(order);
+    const messagea = {
+      orderId: order._id,
+      order: order
+  };
+    // await RabbitMQService.sendtoqueue("inventory_check_queue", messagea);
+    await RabbitMQService.publishMessage(
+      "order_exchange", // exchange name
+      "inventory.check", // routing key
+      messagea // message
+    );
 
     res.status(201).json({
       message: "updated Order received. We will notify you about the status via email.",
@@ -177,12 +143,57 @@ exports.deleteorder = async (req, res) => {
     }
 
     await Order.deleteOne({ _id: orderId });
-    await rabbitMQService.publishMessage("order_events", "order.deleted", {
-      deleted_order_id: orderId,
-      timestamp: new Date(),
-    });
+    // await rabbitMQService.publishMessage("order_events", "order.deleted", {
+    //   deleted_order_id: orderId,
+    //   timestamp: new Date(),
+    // });
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.get_recommendation = async (userId) => {
+  try {
+
+      // Fetch user's past orders
+      const orders = await Order.find({ userId });
+
+      if (!orders.length) {
+          return res.status(404).json({ message: "No orders found for this user." });
+      }
+
+      // Use a single iteration to extract unique values
+      const uniqueValues = {
+          categories: new Set(),
+          subcategories: new Set(),
+          companies: new Set(),
+          productNames: new Set(),
+          productid: new Set(),
+
+      };
+
+      orders.forEach(order => {
+          order.products.forEach(product => {
+              uniqueValues.categories.add(product.category);
+              uniqueValues.subcategories.add(product.subcategory);
+              uniqueValues.companies.add(product.company);
+              uniqueValues.productNames.add(product.name);
+              uniqueValues.productid.add(product.productId);
+
+          });
+      });
+
+    const data=json({
+          categories: Array.from(uniqueValues.categories),
+          subcategories: Array.from(uniqueValues.subcategories),
+          companies: Array.from(uniqueValues.companies),
+          productNames: Array.from(uniqueValues.productNames)
+      })
+      await RabbitMQService.sendtoqueue("recommendations_from_order", recommendationData);
+
+      return data;
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+}

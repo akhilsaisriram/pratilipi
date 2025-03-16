@@ -23,7 +23,7 @@ async function initializeApp() {
     await RabbitMQService.connect();
     console.log('RabbitMQ service initialized successfully product');
 
-    await startInventoryConsumer(); 
+    // await startInventoryConsumer(); 
 
 
     process.on('SIGINT', async () => {

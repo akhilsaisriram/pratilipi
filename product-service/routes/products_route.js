@@ -10,5 +10,7 @@ router.get('/filter/:name?/:category?/:minPrice?/:maxPrice?/:rating?', productCo
 router.put('/update/:id', productController.updateproduct);
 router.post('/review/:productId', productController.addreview);
 router.post('/rate/:productId/:userId', productController.updaterating);
+router.get('/:id/:userId', productController.getProductById);
+
 
 module.exports = router;
